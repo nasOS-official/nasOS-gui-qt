@@ -93,12 +93,17 @@ class MainWindow(QMainWindow):
     def startapp(self, c):
         subprocess.Popen(c.split(" "))
     def scanfiles(self):
+        def closureFn(arg, fn):
+            return lambda: fn(arg)
         for file in os.listdir("/usr/share/applications/"):
             if file.endswith(".desktop"):
                 filer = open(os.path.join("/usr/share/applications/", file), "r")
+                sections = []
+                current_section = None
                 for line in filer:
                     if line.find('[') == 0:
                         current_section = line.rstrip("\n")
+                        sections.append(current_section)
                     if current_section == """[Desktop Entry]""":
                         splited_line = line.rstrip("\n").split("=")
                         if splited_line[0] == "Name":
@@ -107,17 +112,17 @@ class MainWindow(QMainWindow):
                             execute = splited_line[1]
                         elif splited_line[0] == "Icon":
                             icon = splited_line[1]
-                button = QToolButton()
-                button.setIcon(QtGui.QIcon("assets/iot.png"))
-                button.setText(name)
-                button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
-                button.setFixedSize(150, 100)
-                Item = QListWidgetItem(self.listWidget)
-                Item.setSizeHint(button.sizeHint())
-                self.listWidget.addItem(Item)
-                self.listWidget.setItemWidget(Item, button)
-                button.clicked.connect(lambda: self.startapp(execute))
-
+                if "[Desktop Entry]" in sections:             
+                    button = QToolButton()
+                    button.setIcon(QtGui.QIcon.fromTheme(icon))
+                    button.setText(name)
+                    button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+                    button.setFixedSize(150, 100)
+                    Item = QListWidgetItem(self.listWidget)
+                    Item.setSizeHint(button.sizeHint())
+                    self.listWidget.addItem(Item)
+                    self.listWidget.setItemWidget(Item, button)
+                    button.clicked.connect(closureFn(execute, self.startapp))
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = MainWindow()
