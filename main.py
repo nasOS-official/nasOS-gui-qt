@@ -74,6 +74,8 @@ class MainWindow(QMainWindow):
             self.tabWidget.setCurrentIndex(2)
         elif (sender == self.toolButton_help):
             self.tabWidget.setCurrentIndex(3)
+    def closeEvent(self, event):
+        event.ignore()
     def set_usedmemory(self, n):
         self.usedram.setText(str(n))
     def set_freememory(self, n):
