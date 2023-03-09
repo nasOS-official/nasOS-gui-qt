@@ -74,8 +74,8 @@ class MainWindow(QMainWindow):
             self.tabWidget.setCurrentIndex(2)
         elif (sender == self.toolButton_help):
             self.tabWidget.setCurrentIndex(3)
-    def closeEvent(self, event):
-        event.ignore()
+    # def closeEvent(self, event):
+    #     event.ignore()
     def set_usedmemory(self, n):
         self.usedram.setText(str(n))
     def set_freememory(self, n):
@@ -102,6 +102,7 @@ class MainWindow(QMainWindow):
                 filer = open(os.path.join("/usr/share/applications/", file), "r")
                 sections = []
                 current_section = None
+                tryexecute = None
                 for line in filer:
                     if line.find('[') == 0:
                         current_section = line.rstrip("\n")
@@ -112,11 +113,17 @@ class MainWindow(QMainWindow):
                             name = splited_line[1]
                         elif splited_line[0] == "Exec":
                             execute = splited_line[1]
+                        elif splited_line[0] == "TryExec":
+                            tryexecute = splited_line[1]
                         elif splited_line[0] == "Icon":
                             icon = splited_line[1]
                 if "[Desktop Entry]" in sections:             
                     button = QToolButton()
-                    button.setIcon(QtGui.QIcon.fromTheme(icon))
+                    if "/" in icon:
+                        button.setIcon(QtGui.QIcon(icon))
+                    else:
+                        button.setIcon(QtGui.QIcon.fromTheme(icon))
+                    
                     button.setText(name)
                     button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
                     button.setFixedSize(150, 100)
@@ -124,7 +131,11 @@ class MainWindow(QMainWindow):
                     Item.setSizeHint(button.sizeHint())
                     self.listWidget.addItem(Item)
                     self.listWidget.setItemWidget(Item, button)
-                    button.clicked.connect(closureFn(execute, self.startapp))
+                    if tryexecute == None:
+                        button.clicked.connect(closureFn(execute, self.startapp))
+                    else:
+                        button.clicked.connect(closureFn(tryexecute, self.startapp))
+                    
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = MainWindow()
